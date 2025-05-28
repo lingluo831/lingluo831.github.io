@@ -1,0 +1,30 @@
+name: Auto add YAML frontmatter to Markdown
+
+on:
+  workflow_dispatch:   # 支持手动运行
+  push:
+    paths:
+      - '**.md'
+
+jobs:
+  add-frontmatter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Run script to add frontmatter
+        run: python .github/scripts/add_frontmatter.py
+
+      - name: Commit and push if changed
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git diff --staged --quiet || git commit -m "自动为 Markdown 文件添加 YAML 前置元数据"
+          git push
