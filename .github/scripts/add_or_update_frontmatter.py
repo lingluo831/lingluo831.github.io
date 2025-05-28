@@ -1,7 +1,6 @@
 import os
 import re
 from datetime import datetime
-import yaml
 
 def sanitize_title(filename):
     title = os.path.splitext(filename)[0]
@@ -14,7 +13,7 @@ def get_file_creation_date(filepath):
     return datetime.fromtimestamp(t).strftime('%Y-%m-%d')
 
 def get_folder_name(filepath):
-    # 获取父文件夹名 (_posts/分类/xxx.md -> 分类)
+    # 取父文件夹名 (_posts/分类/xxx.md -> 分类)
     parts = filepath.replace('\\', '/').split('/')
     if len(parts) >= 3 and parts[0] == '_posts':
         return parts[1]
@@ -23,51 +22,56 @@ def get_folder_name(filepath):
     else:
         return "article"
 
-def split_frontmatter(content):
-    # 拆分 front matter 和正文
-    match = re.match(r'^---\n([\s\S]*?)\n---\n?', content)
-    if match:
-        fm = match.group(1)
-        body = content[match.end():]
-        return fm, body
-    else:
-        return None, content
+def parse_frontmatter(fm_text):
+    # 简单解析 key: value 形式
+    result = {}
+    for line in fm_text.splitlines():
+        if ':' in line:
+            k, v = line.split(':', 1)
+            result[k.strip()] = v.strip()
+    return result
 
-def merge_frontmatter(old_fm, new_fields):
-    # old_fm: str or None; new_fields: dict
-    if old_fm:
-        try:
-            data = yaml.safe_load(old_fm)
-            if data is None:
-                data = {}
-        except Exception:
-            data = {}
-    else:
-        data = {}
-    # 只补充缺失的字段，不覆盖原有字段
-    for k, v in new_fields.items():
-        if k not in data or not data[k]:
-            data[k] = v
-    # 防止 yaml.dump 输出 'null'
-    data = {k: ("" if v is None else v) for k, v in data.items()}
-    return "---\n" + yaml.safe_dump(data, allow_unicode=True, sort_keys=False).strip() + "\n---\n"
+def build_frontmatter(data):
+    lines = ['---']
+    for k, v in data.items():
+        lines.append(f'{k}: {v}')
+    lines.append('---\n')
+    return '\n'.join(lines)
 
 def process_file(filepath):
     with open(filepath, 'r', encoding='utf-8') as f:
         content = f.read()
-    old_fm, body = split_frontmatter(content)
-    title = sanitize_title(os.path.basename(filepath))
-    date = get_file_creation_date(filepath)
-    layout = get_folder_name(filepath)
-    new_fields = {
-        "layout": layout,
-        "title": title,
-        "date": date
-    }
-    new_fm = merge_frontmatter(old_fm, new_fields)
-    with open(filepath, 'w', encoding='utf-8') as f:
-        f.write(new_fm + body.lstrip('\n'))
-    print(f"已合并/补全 front matter：{filepath}")
+
+    # 匹配 front matter
+    match = re.match(r'^---\n([\s\S]*?)\n---\n?', content)
+    if match:
+        fm_text = match.group(1)
+        body = content[match.end():]
+        fm = parse_frontmatter(fm_text)
+    else:
+        fm = {}
+        body = content
+
+    # 补全字段
+    changed = False
+    folder_layout = get_folder_name(filepath)
+    if 'layout' not in fm:
+        fm['layout'] = folder_layout
+        changed = True
+    if 'title' not in fm:
+        fm['title'] = sanitize_title(os.path.basename(filepath))
+        changed = True
+    if 'date' not in fm:
+        fm['date'] = get_file_creation_date(filepath)
+        changed = True
+
+    if changed or not match:
+        new_fm = build_frontmatter(fm)
+        with open(filepath, 'w', encoding='utf-8') as f:
+            f.write(new_fm + body.lstrip('\n'))
+        print(f"已补全 front matter: {filepath}")
+    else:
+        print(f"front matter 已完善: {filepath}")
 
 def main():
     for root, _, files in os.walk('_posts'):
