@@ -1,9 +1,8 @@
 ---
-created: 2025-05-26 13:11
-tags: [编程,思路,遍历]
+title: title: new-years-eve-is-awesome
+tags: TeXt
 layout: _posts
-title: 遍历
-date: 2025-05-28
+date: 2011-12-31
 ---
 写法一,c中也可以用
 ```cpp
