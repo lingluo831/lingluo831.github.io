@@ -1,3 +1,9 @@
+---
+layout: article
+title: How To Release
+date: 2025-05-28
+---
+
 # HOW TO RELEASE
 
 ## Preparation

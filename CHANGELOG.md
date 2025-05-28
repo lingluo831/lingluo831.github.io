@@ -1,3 +1,9 @@
+---
+layout: article
+title: Changelog
+date: 2025-05-28
+---
+
 # Change Log
 
 ## 2.2.6 (2019-02-02)
