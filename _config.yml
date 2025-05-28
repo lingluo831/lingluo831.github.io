@@ -20,7 +20,7 @@ text_skin: default # "default" (default), "dark", "forest", "ocean", "chocolate"
 highlight_theme: default # "default" (default), "tomorrow", "tomorrow-night", "tomorrow-night-eighties", "tomorrow-night-blue", "tomorrow-night-bright"
 url     : # the base hostname & protocol for your site e.g. https://www.someone.com
 baseurl : # does not include hostname
-title   : lingluo'blog
+title   : lingluo's blog
 description: > # this means to ignore newlines until "Language & timezone"
   这里是我的个人学习笔记和心得分享
 
@@ -35,7 +35,7 @@ timezone: Asia/Shanghai
 ##############################
 author:
   type      : # "person" (default), "organization"
-  name      : Your Name
+  name      : lingluo
   url       :
   avatar    : # path or url of avatar image (square)
   bio       : I am an amazing person.
