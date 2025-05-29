@@ -1,4 +1,7 @@
 ---
+layout: article
+title: Printf、Print、Std
+date: 2025-05-29
 created: 2025-05-25 13:16
 tags: [编程,名词,printf、print、std]
 ---
