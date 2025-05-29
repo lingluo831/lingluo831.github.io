@@ -18,14 +18,8 @@ def get_file_creation_date(filepath):
     return datetime.fromtimestamp(t).strftime('%Y-%m-%d')
 
 def get_folder_name(filepath):
-    # 取父文件夹名 (_posts/分类/xxx.md -> 分类)
-    parts = filepath.replace('\\', '/').split('/')
-    if len(parts) >= 3 and parts[0] == '_posts':
-        return parts[1]
-    elif len(parts) >= 2:
-        return parts[-2]
-    else:
-        return "article"
+    # 始终返回 article 作为默认布局
+    return "article"
 
 def parse_frontmatter(fm_text):
     # 简单解析 key: value 形式
@@ -37,9 +31,24 @@ def parse_frontmatter(fm_text):
     return result
 
 def build_frontmatter(data):
+    """构建标准的 front matter,保持固定字段顺序"""
+    # 确保必要的字段存在
+    required_fields = {
+        'layout': 'article',
+        'title': data.get('title', ''),
+        'date': data.get('date', '')
+    }
+    # 合并用户自定义字段
+    data.update({k: v for k, v in required_fields.items() if k not in data})
+    
     lines = ['---']
+    # 首先添加必要字段,保持固定顺序
+    for key in ['layout', 'title', 'date']:
+        lines.append(f'{key}: {data[key]}')
+    # 添加其他可选字段
     for k, v in data.items():
-        lines.append(f'{k}: {v}')
+        if k not in ['layout', 'title', 'date']:
+            lines.append(f'{k}: {v}')
     lines.append('---\n')
     return '\n'.join(lines)
 
@@ -66,11 +75,10 @@ def process_file(filepath):
 
     # 补全字段
     changed = False
-    folder_layout = get_folder_name(filepath)
     file_date = get_file_creation_date(filepath)
     
-    if 'layout' not in fm:
-        fm['layout'] = folder_layout
+    if 'layout' not in fm or fm['layout'] != 'article':
+        fm['layout'] = 'article'
         changed = True
     if 'title' not in fm:
         fm['title'] = sanitize_title(os.path.basename(filepath))
